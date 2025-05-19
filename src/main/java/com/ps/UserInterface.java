@@ -28,6 +28,7 @@ public class UserInterface {
             System.out.println("7. Get all");
             System.out.println("8. Add vehicle");
             System.out.println("9. Remove vehicle");
+            System.out.println("10. Sell/Lease a Vehicle");
             System.out.println("0. Exit");
 
             System.out.print("Command: ");
@@ -43,6 +44,7 @@ public class UserInterface {
                 case 7: processGetAllVehiclesRequest(); break;
                 case 8: processAddVehicleRequest(); break;
                 case 9: processRemoveVehicleRequest(); break;
+                case 10: processSellOrLease(); break;
                 case 0: System.out.println("Exiting..."); break;
                 default: System.out.println("Command not found, try again");
             }
@@ -132,4 +134,47 @@ public class UserInterface {
             System.out.print(vehicle);
         }
     }
-}
+
+    private void processSellOrLease() {
+        System.out.print("Enter VIN of vehicle: ");
+        int vin = scanner.nextInt();
+        Vehicle vehicle = dealership.getVehicleByVin(vin);
+
+        if (vehicle == null) {
+            System.out.println("Vehicle not found.");
+            return;
+        }
+
+        System.out.print("Customer Name: ");
+        scanner.nextLine(); // consume newline
+        String name = scanner.nextLine();
+
+        System.out.print("Customer Email: ");
+        String email = scanner.nextLine();
+
+        System.out.print("Is this a sale or lease? (sale/lease): ");
+        String type = scanner.nextLine();
+
+        Contract contract;
+
+        if (type.equalsIgnoreCase("sale")) {
+            System.out.print("Finance? (yes/no): ");
+            String finance = scanner.nextLine();
+            boolean isFinanced = finance.equalsIgnoreCase("yes");
+            contract = new SalesContract(name, email, vehicle, isFinanced);
+        } else {
+            if ((2025 - vehicle.getYear()) > 3) {
+                System.out.println("Vehicle too old to lease.");
+                return;
+            }
+            contract = new LeaseContract(name, email, vehicle);
+        }
+
+        ContractFileManager.saveContract(contract);
+        dealership.removeVehicle(vin);
+        System.out.println("Contract recorded and vehicle removed from inventory.");
+    }
+
+    }
+
+
